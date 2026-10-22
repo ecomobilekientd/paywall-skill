@@ -18,7 +18,7 @@ Mục đích: mọi paywall mới đều ra cùng một bộ state, cùng quy t�
 
 - Browser để mở HTML board (không cần server).
 - Nguồn giá thật của app: Play Console, App Store Connect hoặc RevenueCat. Không bịa giá.
-- Tuỳ chọn: Figma MCP (`use_figma`) để dựng lên Figma sau khi chốt; skill tạo ảnh (ví dụ `imagegen`) cho hero. Không có skill tạo ảnh thì dùng ảnh stock có licence hoặc Lottie, ghi licence vào docs của app.
+- Tuỳ chọn (cách kết nối ở SETUP.md của repo): Figma MCP (`use_figma`) để dựng lên Figma sau khi chốt; Mobbin connector để kéo tham chiếu; skill tạo ảnh (ví dụ `imagegen`) cho hero. Không có skill tạo ảnh thì dùng ảnh stock có licence hoặc Lottie, ghi licence vào docs của app.
 
 ## 1. Output mặc định
 

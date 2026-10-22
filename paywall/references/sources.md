@@ -6,7 +6,7 @@ Mục đích: trước khi đề xuất hướng (SKILL.md §5 bước 2), kéo 
 
 | Nguồn | Cách dùng | Ghi chú |
 |---|---|---|
-| **Mobbin MCP** (`search_screens`, `search_flows`) | `search_screens(platform: "ios", query: "paywall with weekly trial and lifetime plan")`, lọc theo app hoặc ngành; `search_flows` để xem cả luồng onboarding → paywall | Cần tài khoản Mobbin và kết nối MCP. Mỗi kết quả cite `mobbin_url`. Ảnh tải từ `image_url` nếu cần dán vào board. |
+| **Mobbin MCP** (`search_screens`, `search_flows`) | `search_screens(platform: "ios", query: "paywall with weekly trial and lifetime plan")`, lọc theo app hoặc ngành; `search_flows` để xem cả luồng onboarding → paywall | Cần tài khoản Mobbin (Pro/Team/Enterprise) và connector Mobbin trong Claude, xem SETUP.md mục 4. Mỗi kết quả cite `mobbin_url`. Ảnh tải từ `image_url` nếu cần dán vào board. |
 | **Thư mục `gallery/` trong repo này** | Mỗi paywall team đã làm hoặc sưu tầm = 1 ảnh + 1 dòng trong `gallery/index.md` | Đây là nguồn lớn dần theo team. Xem quy tắc đóng góp ở dưới. |
 | **Web search có nguồn** | Khi Mobbin thiếu ngành: tìm "<app> paywall screenshot", "subscription paywall <ngành> 2026" | Chỉ dùng kết quả có ảnh và URL thật; không có thì ghi "chưa có dữ liệu". |
 

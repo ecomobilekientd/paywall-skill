@@ -4,16 +4,15 @@ Skill cho Claude Code (và các agent đọc được `SKILL.md`) để thiết 
 
 ## Cài
 
-Copy thư mục `paywall/` vào thư mục skills:
+Xem **[SETUP.md](SETUP.md)**: cài Claude Code, cài skill, kết nối Figma MCP, Mobbin, công cụ tạo ảnh, chạy thử và lỗi hay gặp.
+
+Nhanh nhất:
 
 ```bash
-git clone https://github.com/ecomobilekientd/paywall-skill.git
-cp -r paywall-skill/paywall ~/.claude/skills/paywall        # dùng cho mọi project
-# hoặc
-cp -r paywall-skill/paywall <repo>/.claude/skills/paywall    # chỉ trong một repo
+git clone https://github.com/ecomobilekientd/paywall-skill.git && mkdir -p ~/.claude/skills && cp -r paywall-skill/paywall ~/.claude/skills/paywall
 ```
 
-Mở Claude Code, nhắc tới "paywall" hoặc "pw" là skill tự kích hoạt. Gọi tay: `/paywall`.
+Mở phiên Claude Code mới, nhắc tới "paywall" hoặc "pw" là skill tự kích hoạt. Gọi tay: `/paywall`.
 
 ## Có gì trong đây
 
@@ -37,7 +36,7 @@ Mở `paywall/assets/board-template.html` trong browser: bảng demo cho một a
 
 - Browser. Không cần server.
 - Giá thật từ Play Console / App Store Connect / RevenueCat.
-- Tuỳ chọn: Figma MCP để dựng lên Figma, Mobbin MCP để kéo tham chiếu, skill tạo ảnh cho hero.
+- Tuỳ chọn: Figma MCP để dựng lên Figma, Mobbin connector để kéo tham chiếu, công cụ tạo ảnh cho hero. Cách kết nối ở [SETUP.md](SETUP.md).
 
 ## Đóng góp
 
