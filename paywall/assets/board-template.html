@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paywall board</title>
+<style>
+/* ===== Board (page) styles. Keep page selectors child-scoped so they never leak into phone frames. ===== */
+:root { color-scheme: light; }
+body { margin: 0; background: #2b2b2b; color: #eee; font: 14px/1.4 Inter, system-ui, sans-serif; padding: 32px 40px 80px; }
+body > h1 { font-size: 28px; margin: 0 0 24px; }
+#board > .row { margin: 0 0 48px; }
+#board > .row > h2 { font-size: 22px; margin: 0 0 16px; font-weight: 600; }
+#board > .row > .frames { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+#board > .row > .frames > figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+#board > .row > .frames > figure > figcaption { font-size: 13px; color: #ddd; text-align: center; max-width: 360px; white-space: pre-line; }
+#board > .row > .frames > figure > .lint { font-size: 11px; max-width: 360px; text-align: center; padding: 4px 8px; border-radius: 6px; }
+#board > .row > .frames > figure > .lint.ok { color: #8fd; }
+#board > .row > .frames > figure > .lint.bad { color: #ffd38a; background: rgba(255,170,60,.12); }
+#board > .row > .frames > figure > .group { font-size: 15px; font-weight: 600; color: #fff; align-self: flex-start; margin-bottom: -2px; }
+
+/* ===== Phone frame: everything below is scoped under .pw ===== */
+.pw { position: relative; width: 360px; height: 800px; overflow: hidden; border-radius: 18px; background: var(--bg); color: var(--fg); font-family: var(--font); box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.pw.small { height: 640px; }
+.pw .scroll { position: absolute; inset: 0; overflow: hidden; }
+.pw .scroll.scrolled { transform: translateY(var(--scroll, 0)); }
+.pw .close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; background: var(--close-bg); color: var(--close-fg); display: grid; place-items: center; font-size: 15px; z-index: 5; }
+.pw .hero { position: relative; height: var(--hero-h); overflow: hidden; }
+.pw.small .hero { height: calc(var(--hero-h) * .72); }
+.pw .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pw .hero .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 80px; background: linear-gradient(to bottom, transparent, var(--bg)); }
+.pw .body { padding: 0 20px 16px; display: flex; flex-direction: column; gap: 14px; }
+.pw h1 { margin: 10px 0 0; font-size: 22px; line-height: 1.25; font-weight: 700; text-align: center; }
+.pw h1 em { font-style: normal; color: var(--accent); }
+.pw .sub { margin: -6px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
+.pw .trust { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.pw .trust span { font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--chip-bg); color: var(--chip-fg); }
+.pw .benefits { display: grid; gap: 8px; }
+.pw .benefits div { display: flex; gap: 10px; align-items: center; font-size: 13px; }
+.pw .benefits i { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); opacity: .85; flex: none; display: grid; place-items: center; font-style: normal; font-size: 12px; color: #fff; }
+
+/* pricing block, anchored to the bottom */
+.pw .pricing { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 20px 14px; background: var(--bg); display: flex; flex-direction: column; gap: 10px; }
+.pw .pricing::before { content: ""; position: absolute; left: 0; right: 0; top: -40px; height: 40px; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
+.pw .pill { align-self: center; font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--trial-bg); color: var(--trial-fg); font-weight: 600; }
+
+/* selector A: two cards */
+.pw .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pw .card { position: relative; border: 1.5px solid var(--card-border); border-radius: 14px; padding: 12px 12px 10px; background: var(--card-bg); min-height: 58px; display: flex; flex-direction: column; gap: 2px; }
+.pw .card.on { border-color: var(--accent); background: var(--card-on-bg); }
+.pw .card .name { font-size: 13px; font-weight: 600; }
+.pw .card .price { font-size: 16px; font-weight: 700; }
+.pw .card .price small { font-size: 11px; font-weight: 500; color: var(--muted); }
+.pw .card .line { font-size: 10.5px; color: var(--muted); }
+.pw .card .tag { position: absolute; top: -9px; left: 10px; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--accent); color: #fff; text-transform: uppercase; letter-spacing: .02em; }
+.pw .card .tag.trial { background: var(--trial-bg); color: var(--trial-fg); }
+.pw .card .tag.right { left: auto; right: 10px; }
+.pw .card .radio { position: absolute; top: 10px; right: 10px; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--card-border); }
+.pw .card.on .radio { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px var(--card-on-bg); }
+
+/* selector B: vertical list */
+.pw .list { display: grid; gap: 8px; }
+.pw .list .card { flex-direction: row; align-items: center; justify-content: space-between; padding: 12px 14px; }
+.pw .list .card .left { display: flex; flex-direction: column; gap: 2px; padding-left: 24px; }
+.pw .list .card .radio { top: 50%; left: 12px; right: auto; transform: translateY(-50%); }
+.pw .list .card .right { text-align: right; }
+.pw .more { text-align: center; font-size: 11px; color: var(--muted); }
+
+/* selector C: tabs + toggle */
+.pw .tabs { display: flex; background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: 999px; padding: 3px; position: relative; }
+.pw .tabs div { flex: 1; text-align: center; padding: 7px 0; font-size: 13px; font-weight: 600; border-radius: 999px; color: var(--muted); }
+.pw .tabs div.on { background: var(--accent); color: #fff; }
+.pw .tabs .tag { position: absolute; top: -9px; right: 10px; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--accent); color: #fff; }
+.pw .toggle { display: flex; justify-content: space-between; align-items: center; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 10px 14px; background: var(--card-bg); font-size: 13px; }
+.pw .toggle .sw { width: 36px; height: 20px; border-radius: 999px; background: var(--card-border); position: relative; }
+.pw .toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+.pw .toggle.on .sw { background: var(--accent); }
+.pw .toggle.on .sw::after { left: 18px; }
+.pw .toggle.off .sw::after { background: var(--muted); }
+
+/* selector D: single card */
+.pw .single { position: relative; border: 1.5px solid var(--accent); border-radius: 14px; padding: 12px 14px; background: var(--card-on-bg); display: flex; justify-content: space-between; align-items: center; }
+.pw .single .l b, .pw .single .r b { display: block; font-size: 14px; }
+.pw .single .l span, .pw .single .r span { font-size: 10.5px; color: var(--muted); }
+.pw .single .r { text-align: right; }
+.pw .single .badge { position: absolute; top: -9px; right: 10px; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--trial-bg); color: var(--trial-fg); text-transform: uppercase; }
+
+/* charge, cta, legal */
+.pw .charge { text-align: center; font-size: 11px; color: var(--muted); line-height: 1.35; min-height: 15px; white-space: pre-line; }
+.pw .cta { height: 50px; border-radius: var(--cta-radius); background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
+.pw .cta.disabled { background: var(--skeleton); color: transparent; }
+.pw .legal { text-align: center; font-size: 10.5px; color: var(--muted); }
+.pw .legal b { color: var(--fg); font-weight: 600; text-decoration: underline; }
+
+/* skeleton + spinner */
+.pw .skel { background: var(--skeleton); border-radius: 8px; min-height: 58px; display: grid; place-items: center; border: 1.5px solid transparent; }
+.pw .spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); border-top-color: transparent; animation: pw-spin 1s linear infinite; }
+.pw .cta .spin { border-color: #fff; border-top-color: transparent; position: absolute; }
+.pw .cta { position: relative; }
+@keyframes pw-spin { to { transform: rotate(360deg); } }
+
+/* terms sheet */
+.pw .overlay { position: absolute; inset: 0; background: rgba(0,0,0,.5); z-index: 6; }
+.pw .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 58%; background: #fff; color: #222; border-radius: 18px 18px 0 0; padding: 14px 18px; z-index: 7; font-size: 11.5px; line-height: 1.45; }
+.pw .sheet header { display: flex; align-items: center; gap: 18px; margin-bottom: 12px; font-size: 12px; font-weight: 600; color: #777; }
+.pw .sheet header .on { color: #222; text-decoration: underline; }
+.pw .sheet header .x { margin-left: auto; font-size: 16px; color: #222; }
+.pw .sheet p { margin: 0 0 8px; }
+
+/* error state */
+.pw .error { text-align: center; font-size: 12.5px; color: var(--fg); padding: 14px; border: 1.5px dashed var(--card-border); border-radius: 12px; }
+</style>
+</head>
+<body>
+<h1 id="title"></h1>
+<div id="board"></div>
+
+<script>
+/* =====================================================================
+   CONFIG — the only part to edit per app. Theme vars map to CSS custom properties.
+   Prices must be the real Play Console / App Store prices of the app. Never invent them.
+   The values below are a SAMPLE for a fictional notes app. Replace every one of them.
+   ===================================================================== */
+const CONFIG = {
+  app: 'Notely',                     // display name used in the Terms sheet (sample app)
+  store: 'Google Play',               // 'Google Play' | 'App Store'
+  title: 'Notely paywall — demo states (sample config)',
+  archetype: 'cards',                 // 'cards' (A) | 'list' (B) | 'tabs' (C) | 'single' (D)
+  frameWidth: 360,
+  theme: {
+    font: 'Inter, system-ui, sans-serif',
+    bg: '#0F1A3A', fg: '#FFFFFF', muted: 'rgba(255,255,255,.62)', accent: '#6C7CFF',
+    'card-bg': 'rgba(255,255,255,.06)', 'card-on-bg': 'rgba(108,124,255,.16)', 'card-border': 'rgba(255,255,255,.18)',
+    'chip-bg': 'rgba(255,255,255,.1)', 'chip-fg': '#FFFFFF',
+    'trial-bg': '#2ED47A', 'trial-fg': '#06251A',
+    'close-bg': 'rgba(255,255,255,.14)', 'close-fg': '#FFFFFF',
+    skeleton: 'rgba(255,255,255,.12)', 'cta-radius': '999px', 'hero-h': '300px',
+  },
+  hero: { src: 'img/hero-sample.svg', alt: 'hero' },   // replace with a real image or Lottie; no grey placeholders
+  headline: 'Take your <em>notes</em> further.',
+  sub: '',
+  trust: ['Trusted by 30M+ users', 'Over 9 years of growth'],
+  benefits: ['Unlimited notes, checklists & folders', 'AI-powered voice notes', 'Enjoy an ad-free experience', 'PDF export for easy sharing'],
+  trialDays: 3,
+  // trial:true = this product has a trial offer in Play Console. lifetime:true = one-time purchase.
+  plans: [
+    { id: 'w', name: 'Weekly',   price: '$4.99',  period: 'week', trial: true,  tag: 'Most popular' },
+    { id: 'y', name: 'Yearly',   price: '$14.99', period: 'year', trial: false, tag: '75% OFF', equiv: 'Only $1.25/month' },
+    { id: 'l', name: 'Lifetime', price: '$29.99', lifetime: true },
+  ],
+  focus: 'w',
+  // Optional: custom selector for a layout outside A/B/C/D. Receives ctx {sel, plans, trial, eligible, S, v, loading, failed}
+  // and returns HTML for the Label slot only. Charge line, CTA, legal, sheet and lint stay shared.
+  renderSelector: null,
+  dealMaxChars: 64,                   // chars per line of the deal line at this width/font; 2 lines allowed when the pricing block has room
+  dealLines: 1,                       // 1 = prefer one line; 2 = allow the two-line (long) variant
+  // optional localisation demo: strings + prices for one market
+  locale: {
+    label: 'Demo tiếng Hàn',
+    headline: '메모를 한 단계 더 <em>발전</em>시키세요.',
+    trust: ['3천만+ 사용자가 신뢰', '9년 이상의 성장'],
+    benefits: ['무제한 메모, 체크리스트 및 폴더', 'AI 음성 메모', '광고 없는 환경', 'PDF 내보내기'],
+    plans: { w: { name: '주간', price: '₩6,900', period: '주' }, y: { name: '연간', price: '₩20,900', period: '년', equiv: '월 ₩1,742' }, l: { name: '평생', price: '₩41,000' } },
+    str: { ctaTrial: '무료로 시작하기', ctaSub: '계속하기', trialTag: '3일 무료 체험', pill: '3일 무료 체험 활성화',
+      dealTrial: ['{days}일 무료, 이후 {price}/{period}. 자동 갱신, 언제든 취소 가능', '{days}일 무료 체험 후 {price}/{period}. 자동 갱신, 언제든 취소 가능', '{days}일 무료 체험 종료 후 {price}/{period}.\n자동 갱신, 언제든 취소 가능'], dealSub: ['{price}/{period}. 자동 갱신, 언제든 취소 가능', '{price}/{period}. 자동 갱신, 언제든 취소 가능', '{price}/{period}, 오늘 결제.\n자동 갱신, 언제든 취소 가능'],
+      dealLife: ['{price} 1회 결제', '{price} 1회 결제', '{price} 1회 결제.\n구독 없음, 갱신 없음'], legal: '계속하면 <b>이용 약관 및 개인정보처리방침</b>에 동의하는 것으로 간주됩니다.', lifeLine: '1회 구매', renew: '자동 갱신, 언제든 취소 가능', mostPopular: '인기' },
+  },
+};
+
+/* ===== Standard strings (see references/copy.md). Edit only with a reason. ===== */
+const STR = {
+  ctaTrial: 'Try for free', ctaSub: 'Continue', retry: 'Try again',
+  trialTag: '{days}-day free trial', pill: '{days}-day free trial enabled',
+  toggleOn: 'Free trial enabled', toggleOff: 'Not sure yet? Enable free trial', toggleNa: 'Free trial unavailable',
+  // deal line variants, same facts, chosen by length (see references/copy.md): [short, medium, long]
+  dealTrial: ['{days} days free, then {price}/{period}. Auto-renew, cancel anytime.', '{days}-day free trial, then {price}/{period}. Auto-renew. Cancel anytime.', '{price}/{period} after {days}-day free trial ends.\nAuto-renew. Cancel anytime.'],
+  dealSub:   ['{price}/{period}. Auto-renew, cancel anytime.', '{price}/{period}. Auto-renew. Cancel anytime.', '{price}/{period}, billed today.\nAuto-renew. Cancel anytime.'],
+  dealLife:  ['{price} once. No renewals.', 'Billed {price}. One time payment.', 'One time purchased with {price}.\nNo subscription, no renewals.'],
+  chargeFail: "We couldn't load the plans.\nCheck your connection and try again.",
+  legal: 'By continuing you agree to our <b>Terms & Privacy Policy</b>',
+  lifeLine: 'One time purchased', billedPer: 'Billed per {period}', chargedToday: 'charged today',
+  thenPrice: 'then {price}/{period}', zero: '$0.00', nextDays: 'for the next {days} days', noPayment: 'NO PAYMENT NOW',
+  showMore: 'Show more plan', showLess: 'Show less plan',
+  terms: ['Terms', 'Privacy policies.'],
+  termsBody: [
+    "Subscription gives you access to {app}'s pro features, all ads will be removed.",
+    'Subscription plans are automatically renewed and can be canceled anytime in Subscriptions on {store}.',
+    'You will not be charged if subscription is canceled before trial period ends.',
+    'Non-subscribed users can still use the application, however, some paid features may be limited.',
+    'Subscription is not required to use {app}.',
+  ],
+};
+
+/* ===== Engine. One render(opts) call = one phone frame. Do not rewrite; extend via CONFIG/STR. ===== */
+const fmt = (s, v) => s.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? '');
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+// Pick the longest deal-line variant that fits: long (2 fixed lines) only when dealLines = 2; else medium if it fits one line, else short.
+function pickDeal(variants, v) {
+  const [s1, s2, s3] = variants.map(t => fmt(t, v));
+  if (CONFIG.dealLines >= 2) return s3;
+  return s2.length <= CONFIG.dealMaxChars ? s2 : s1;
+}
+
+function render(o) {
+  // o: { sel, eligible, billing: 'ok'|'loading'|'failed', small, terms, scrolled, locale, toggle }
+  const L = o.locale ? CONFIG.locale : null;
+  const S = L ? { ...STR, ...L.str } : STR;
+  const plans = CONFIG.plans.map(p => L && L.plans[p.id] ? { ...p, ...L.plans[p.id] } : p);
+  const sel = plans.find(p => p.id === o.sel) || plans.find(p => p.id === CONFIG.focus);
+  const v = { days: CONFIG.trialDays, price: sel.price, period: sel.period, app: CONFIG.app, store: CONFIG.store };
+  const loading = o.billing === 'loading', failed = o.billing === 'failed';
+  const toggleOn = o.toggle === undefined ? true : o.toggle;          // archetype C only
+  const trial = o.eligible && !!sel.trial && !sel.lifetime && (CONFIG.archetype !== 'tabs' || toggleOn);
+  const headline = L ? L.headline : CONFIG.headline;
+  const trust = L ? L.trust : CONFIG.trust;
+  const benefits = L ? L.benefits : CONFIG.benefits;
+
+  const tagOf = p => p.tag ? `<span class="tag">${esc(L && p.tag === 'Most popular' ? S.mostPopular : p.tag)}</span>` : '';
+  const trialTag = p => (o.eligible && p.trial && !p.lifetime) ? `<span class="tag trial right">${esc(fmt(S.trialTag, v))}</span>` : '';
+  const lineOf = p => p.lifetime ? S.lifeLine : (o.eligible && p.trial) ? fmt(S.trialTag, v) : (p.equiv || '');
+
+  let selector = '';
+  if (typeof CONFIG.renderSelector === 'function') {
+    selector = CONFIG.renderSelector({ sel, plans, trial, eligible: o.eligible, S, v, loading, failed, toggleOn });
+  } else if (loading) {
+    const n = CONFIG.archetype === 'single' ? 1 : CONFIG.archetype === 'tabs' ? 1 : Math.min(plans.filter(p => !p.lifetime).length, 2);
+    selector = CONFIG.archetype === 'list' || CONFIG.archetype === 'tabs' || CONFIG.archetype === 'single'
+      ? `<div class="list">${Array.from({ length: n }, () => '<div class="skel"><span class="spin"></span></div>').join('')}</div>`
+      : `<div class="cards">${Array.from({ length: n }, () => '<div class="skel"><span class="spin"></span></div>').join('')}</div>`;
+  } else if (failed) {
+    selector = `<div class="error">${esc(S.chargeFail).replace('\n', '<br>')}</div>`;
+  } else if (sel.lifetime) {
+    // lifetime selected: show the lifetime card(s) only, never trial UI
+    const lifes = plans.filter(p => p.lifetime);
+    selector = CONFIG.archetype === 'cards'
+      ? `<div class="cards">${lifes.map((p, i) => `<div class="card ${i === 0 ? 'on' : ''}" style="${lifes.length === 1 ? 'grid-column:1/-1' : ''}"><span class="radio"></span><span class="name">${esc(p.name)}</span><span class="price">${esc(p.price)}</span><span class="line">${esc(S.lifeLine)}</span></div>`).join('')}</div>`
+      : CONFIG.archetype === 'tabs'
+      ? `<div class="tabs"><div class="on">${esc(sel.name)}</div><div>${esc(sel.name)}</div></div>`
+      : CONFIG.archetype === 'single'
+      ? `<div class="single"><div class="l"><b>${esc(sel.name)}</b><span>${esc(S.lifeLine)}</span></div><div class="r"><b>${esc(sel.price)}</b></div></div>`
+      : `<div class="list">${lifes.map(p => `<div class="card on"><span class="radio"></span><div class="left"><span class="name">${esc(p.name)}</span><span class="line">${esc(S.lifeLine)}</span></div><div class="right"><span class="price">${esc(p.price)}</span></div></div>`).join('')}</div>`;
+  } else {
+    const subs = plans.filter(p => !p.lifetime);
+    if (CONFIG.archetype === 'cards') {
+      selector = `<div class="cards">${subs.slice(0, 2).map(p => `<div class="card ${p.id === sel.id ? 'on' : ''}">${tagOf(p)}<span class="radio"></span><span class="name">${esc(p.name)}</span><span class="price">${esc(p.price)}<small>/${esc(p.period)}</small></span><span class="line">${esc(p.id === sel.id && trial ? fmt(S.trialTag, v) : (p.equiv || ''))}</span></div>`).join('')}</div>`;
+    } else if (CONFIG.archetype === 'list') {
+      selector = `<div class="list">${subs.map(p => `<div class="card ${p.id === sel.id ? 'on' : ''}">${tagOf(p)}<span class="radio"></span><div class="left"><span class="name">${esc(p.name)}</span><span class="line">${esc(lineOf(p))}</span></div><div class="right"><span class="price">${esc(p.price)}<small>/${esc(p.period)}</small></span></div></div>`).join('')}</div>` +
+        (plans.some(p => p.lifetime) ? `<div class="more">${esc(S.showMore)} ▾</div>` : '');
+    } else if (CONFIG.archetype === 'tabs') {
+      const tg = !o.eligible || !sel.trial ? `<div class="toggle off" style="opacity:.55">${esc(S.toggleNa)}</div>`
+        : `<div class="toggle ${toggleOn ? 'on' : 'off'}"><span>${esc(toggleOn ? S.toggleOn : S.toggleOff)}</span><span class="sw"></span></div>`;
+      selector = `<div class="tabs">${subs.slice(0, 2).map(p => `<div class="${p.id === sel.id ? 'on' : ''}">${esc(p.name)}</div>`).join('')}${sel.tag ? `<span class="tag">${esc(sel.tag)}</span>` : ''}</div>` + tg;
+    } else { // single
+      selector = trial
+        ? `<div class="single"><span class="badge">${esc(S.noPayment)}</span><div class="l"><b>${esc(fmt(S.trialTag, v))}</b><span>${esc(fmt(S.thenPrice, v))}</span></div><div class="r"><b>${esc(S.zero)}</b><span>${esc(fmt(S.nextDays, v))}</span></div></div>`
+        : `<div class="single"><div class="l"><b>${esc(sel.name)} plan</b><span>${esc(fmt(S.billedPer, v))}</span></div><div class="r"><b>${esc(sel.price)}</b><span>${esc(S.chargedToday)}</span></div></div>`;
+    }
+  }
+
+  const charge = loading ? '' : failed ? '' : sel.lifetime ? pickDeal(S.dealLife, v) : trial ? pickDeal(S.dealTrial, v) : pickDeal(S.dealSub, v);
+  const cta = loading ? '<div class="cta disabled"><span class="spin"></span></div>'
+    : failed ? `<div class="cta">${esc(S.retry)}</div>`
+    : `<div class="cta">${esc(trial ? S.ctaTrial : S.ctaSub)}</div>`;
+
+  const sheet = o.terms ? `<div class="overlay"></div><div class="sheet"><header><span class="on">${S.terms[0]}</span><span>${S.terms[1]}</span><span class="x">✕</span></header>${S.termsBody.map(p => `<p>${esc(fmt(p, v))}</p>`).join('')}</div>` : '';
+
+  const style = Object.entries(CONFIG.theme).map(([k, val]) => `--${k}:${val}`).join(';');
+  return `<div class="pw ${o.small ? 'small' : ''}" style="${style}">
+    <div class="close">✕</div>
+    <div class="scroll ${o.scrolled ? 'scrolled' : ''}" style="--scroll:${o.scrolled || 0}px">
+      <div class="hero"><img src="${esc(CONFIG.hero.src)}" alt="${esc(CONFIG.hero.alt || '')}"><div class="fade"></div></div>
+      <div class="body">
+        <h1>${headline}</h1>${CONFIG.sub && !L ? `<p class="sub">${esc(CONFIG.sub)}</p>` : ''}
+        <div class="trust">${trust.map(t => `<span>${esc(t)}</span>`).join('')}</div>
+        <div class="benefits">${benefits.map(b => `<div><i>✓</i>${esc(b)}</div>`).join('')}</div>
+      </div>
+    </div>
+    <div class="pricing"><div class="sel">${selector}</div><div class="charge">${esc(charge)}</div>${cta}<div class="legal">${S.legal}</div></div>
+    ${sheet}</div>`;
+}
+
+/* ===== Lint: every fact once in the deal line, at most one short label in the selector, none in legal. ===== */
+const FACTS = {
+  trial:   /(\d+)[- ]?day free trial|free for \d+ days|\d+ days free|first \d+ days|무료 체험|無料トライアル/i,
+  renew:   /auto[- ]?renew|renews automatically|automatically renew|자동 갱신|自動更新/i,
+  cancel:  /cancel anytime|cancel at any time|언제든 취소|いつでも解約/i,
+  onetime: /one[- ]time|\bonce\b|no renewals|1회/i,
+  period:  /\/\s?(week|month|year)(?![a-z])|\/\s?(주|년|月|週|年)|per (week|month|year)|billed (weekly|monthly|yearly)/i,
+};
+function lint(fig, o) {
+  const pw = fig.querySelector('.pw'); if (!pw) return;
+  const zone = cls => [...pw.querySelectorAll(cls)].map(e => e.innerText).join('\n');
+  const label = zone('.sel'), deal = zone('.charge'), legal = zone('.legal'), story = zone('.scroll');
+  const count = (txt, re) => txt.split('\n').filter(l => re.test(l)).length;
+  const warn = [], lifetime = /one[- ]time/i.test(deal);
+  if (o.billing === 'ok') {
+    const need = lifetime ? ['onetime'] : ['period', 'renew', 'cancel'];
+    if (!lifetime && /free trial|then \$|무료|無料/i.test(deal) === false && o.eligible && o.expectTrial) need.push('trial');
+    need.forEach(k => { if (!count(deal, FACTS[k])) warn.push('thiếu trong deal line: ' + k); });
+    if (lifetime) ['trial', 'renew', 'period'].forEach(k => { if (count(deal + '\n' + label, FACTS[k])) warn.push('lifetime nhưng vẫn có: ' + k); });
+    Object.keys(FACTS).forEach(k => {
+      if (k === 'period') return;
+      if (count(label, FACTS[k]) > 1) warn.push('lặp trong card/tab: ' + k);
+      if (count(legal, FACTS[k])) warn.push('legal nhắc fact: ' + k);
+      if (count(label, FACTS[k]) + Math.min(count(deal, FACTS[k]), 1) + count(story, FACTS[k]) > 2) warn.push('quá 2 lần trên màn: ' + k);
+    });
+    ['renew', 'cancel'].forEach(k => { if (count(label, FACTS[k])) warn.push('card/tab không được ghi ' + k + ' (để deal line nói)'); });
+    if (deal.trim().split('\n').filter(Boolean).length > 2) warn.push('deal line tối đa 2 dòng');
+  } else if (o.billing === 'loading') {
+    if (/\$|₩|¥|€/.test(label + deal)) warn.push('loading vẫn lộ giá');
+  }
+  if (!legal.trim()) warn.push('thiếu legal');
+  const el = document.createElement('div');
+  el.className = 'lint ' + (warn.length ? 'bad' : 'ok');
+  el.textContent = warn.length ? '⚠ ' + warn.join(' · ') : '✓ đủ thông tin, không lặp';
+  fig.appendChild(el);
+}
+
+/* ===== Board: the standard rows and labels (see SKILL.md §6). ===== */
+const FRAME_OPTS = [];
+function frame(label, o, group) {
+  FRAME_OPTS.push(o);
+  return `<figure data-i="${FRAME_OPTS.length - 1}">${group ? `<div class="group">${esc(group)}</div>` : ''}${render(o)}<figcaption>${esc(label)}</figcaption></figure>`;
+}
+function board() {
+  FRAME_OPTS.length = 0;
+  const subs = CONFIG.plans.filter(p => !p.lifetime), life = CONFIG.plans.find(p => p.lifetime);
+  const focus = CONFIG.focus, base = { sel: focus, eligible: true, billing: 'ok' };
+  const rows = [];
+  rows.push(['Demo responsive', [
+    frame('Default view màn to', base),
+    frame('Default view màn bé', { ...base, small: true }),
+    frame('Scroll max view màn to', { ...base, scrolled: -120 }),
+    frame('Scroll max view màn bé', { ...base, small: true, scrolled: -160 }),
+    frame('Bật term & policies', { ...base, terms: true }),
+  ]]);
+  const priceFrames = [];
+  subs.forEach((p, i) => priceFrames.push(frame(i === 0 && p.id === focus ? 'Có free trial' : `Select gói ${p.name.toLowerCase()}${p.trial ? ' free trial' : ''}`, { ...base, sel: p.id }, i === 0 ? 'Có free trial' : '')));
+  if (CONFIG.archetype === 'tabs') priceFrames.push(frame('Gói ' + subs[0].name.toLowerCase() + '\ntoggle off', { ...base, toggle: false }));
+  subs.filter(p => p.trial).forEach((p, i) => priceFrames.push(frame(`TH gói ${p.name.toLowerCase()} ko đủ đkien trial`, { ...base, sel: p.id, eligible: false }, i === 0 ? 'Không có free trial' : '')));
+  if (life) priceFrames.push(frame('Gói lifetime', { ...base, sel: life.id }, 'Gói lifetime'));
+  priceFrames.push(frame('Chưa load được billing', { ...base, billing: 'loading' }, 'Chưa load được billing'));
+  if (CONFIG.locale) priceFrames.push(frame(CONFIG.locale.label, { ...base, locale: true }, CONFIG.locale.label));
+  rows.push(['Demo các gói giá', priceFrames]);
+  document.getElementById('title').textContent = CONFIG.title;
+  document.getElementById('board').innerHTML = rows.map(([h, fr]) => `<div class="row"><h2>${esc(h)}</h2><div class="frames">${fr.join('')}</div></div>`).join('');
+  document.querySelectorAll('figure[data-i]').forEach(f => lint(f, FRAME_OPTS[+f.dataset.i]));
+}
+board();
+</script>
+</body>
+</html>
