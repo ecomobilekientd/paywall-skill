@@ -11,6 +11,7 @@ Mục đích: mọi paywall mới đều ra cùng một bộ state, cùng quy t�
 - `references/states.md` — bảng state đầy đủ, từng phần tử thay đổi thế nào ở mỗi state. Đọc trước khi dựng.
 - `references/copy.md` — kho chuỗi chuẩn (CTA, deal line, tag, dòng pháp lý, nội dung bottom sheet Terms). Đọc khi viết copy.
 - `references/layouts.md` — 4 kiểu chọn gói (A cards, B list, C tabs + toggle, D single plan), hero 3 lớp, responsive. Đọc khi chọn layout.
+- `references/ios.md` — app iOS: theo design system của app (cỡ chữ Apple, không áp luật cỡ chẵn), CTA 56, trấn an xanh lá, bài học payrate vs CTR (rơi ở sheet Apple), style app công cụ. Đọc khi app là iOS.
 - `references/sources.md` — nguồn tham chiếu paywall (Mobbin MCP, gallery của team, web) và cách kéo 5–10 tham chiếu trước khi đề xuất. Đọc ở bước 2.
 - `assets/board-template.html` — template HTML có engine render toàn bộ state từ một object CONFIG. Copy ra, sửa CONFIG và style, không viết engine mới.
 

@@ -22,6 +22,7 @@ paywall/
   references/states.md        ma trận state + rule cho dev
   references/copy.md          kho chuỗi: CTA, deal line, tag, legal, bottom sheet Terms
   references/layouts.md       4 kiểu chọn gói A/B/C/D, hero, pricing block
+  references/ios.md          guideline riêng cho app iOS (Tistora 10/2026)
   references/sources.md       nguồn tham chiếu paywall (Mobbin MCP, gallery, web) + cách dùng
   assets/board-template.html  engine render mọi state từ một CONFIG, có lint chống lặp
   assets/img/hero-sample.svg  hero mẫu, thay bằng ảnh thật
