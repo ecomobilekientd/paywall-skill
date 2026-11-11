@@ -31,7 +31,7 @@ Ký hiệu: ✓ hiện, ✗ ẩn, ◌ skeleton.
 | **7a. Màn bé 360×640 default** | theo state 1 | ✓ | ✓ | ✓ | ✓ | hero cao tối đa ~40% màn; phải thấy card + CTA |
 | **7b. Màn to 360×800 default** | theo state 1 | ✓ | ✓ | ✓ | ✓ | |
 | **7c. Scroll max** | | | | | | nội dung cuộn hết; selector + charge + CTA + legal là khối pinned dưới nếu nội dung dài |
-| **8. Localisation** | ✓ | giá nội tệ | dịch | dịch | dịch | cùng layout; kiểm tra text dài (DE, PT) và CJK (KR, JP) không vỡ card |
+| **8. Localisation** | ✓ | giá nội tệ | dịch | dịch | dịch | cùng layout; kiểm tra text dài (DE, PT) và CJK (KR, JP) không vỡ card; JA theo luật ngắt dòng trong copy.md |
 | ~~9. Load billing lỗi~~ (không dựng: app dùng timeout) | ✗ | ✗ | `We couldn't load the plans. Check your connection and try again.` | `Try again` | ✓ | chỉ giữ chuỗi để tham khảo |
 | *10. Đang mở Google Play (tuỳ chọn)* | như nền | như nền | như nền | spinner + `Opening Google Play…`, disabled | ✓ | sau khi bấm CTA |
 

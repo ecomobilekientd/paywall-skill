@@ -1,6 +1,6 @@
 ---
 name: paywall
-description: Kit chuẩn để thiết kế màn paywall (IAP / subscription) cho app mobile. Dùng skill này mỗi khi người dùng nhắc tới paywall, "pw", màn mua gói, màn subscription, màn chọn gói, free trial, onboarding paywall, pricing screen, hoặc hỏi về các state / case của paywall (có free trial, không đủ điều kiện free trial, đang load billing, chọn gói subs hay lifetime, popup Terms & Privacy). Kể cả khi chỉ xin copy, charge line, text policy, hay một concept paywall mới cũng phải đọc skill này trước. Skill cho ra đủ bộ state với copy chuẩn, text pháp lý chuẩn, dựng HTML board trước, Figma sau khi chốt.
+description: Kit chuẩn để thiết kế màn paywall (IAP / subscription) cho app mobile. Dùng skill này mỗi khi người dùng nhắc tới paywall, "pw", màn mua gói, màn subscription, màn chọn gói, free trial, onboarding paywall, pricing screen, hoặc hỏi về các state / case của paywall (có free trial, không đủ điều kiện free trial, đang load billing, chọn gói subs hay lifetime, popup Terms & Privacy). Kể cả khi chỉ xin copy, charge line, text policy, hay một concept paywall mới cũng phải đọc skill này trước. Skill cho ra đủ bộ state với copy chuẩn, text pháp lý chuẩn, dựng HTML board trước, Figma sau khi chốt. Có nhánh riêng cho iOS (khung 402×874, hàng legal 3 link có Restore).
 ---
 
 # Paywall kit
@@ -11,7 +11,7 @@ Mục đích: mọi paywall mới đều ra cùng một bộ state, cùng quy t�
 - `references/states.md` — bảng state đầy đủ, từng phần tử thay đổi thế nào ở mỗi state. Đọc trước khi dựng.
 - `references/copy.md` — kho chuỗi chuẩn (CTA, deal line, tag, dòng pháp lý, nội dung bottom sheet Terms). Đọc khi viết copy.
 - `references/layouts.md` — 4 kiểu chọn gói (A cards, B list, C tabs + toggle, D single plan), hero 3 lớp, responsive. Đọc khi chọn layout.
-- `references/ios.md` — app iOS: theo design system của app (cỡ chữ Apple, không áp luật cỡ chẵn), CTA 56, trấn an xanh lá, bài học payrate vs CTR (rơi ở sheet Apple), style app công cụ. Đọc khi app là iOS.
+- `references/ios.md` — **nhánh iOS** (chốt 28/10/2026): khung default 402×874, hàng responsive đủ 9 cỡ iPhone, legal là 1 hàng 3 link `Terms of Service · Privacy Policy · Restore` mở Safari view (không bottom sheet), "Opening App Store", design system của app (cỡ chữ Apple), CTA 56, bài học payrate vs CTR. App iOS đọc file này trước khi dựng; các số 360×800/640 và mục 4b bên dưới chỉ cho Android.
 - `references/sources.md` — nguồn tham chiếu paywall (Mobbin MCP, gallery của team, web) và cách kéo 5–10 tham chiếu trước khi đề xuất. Đọc ở bước 2.
 - `assets/board-template.html` — template HTML có engine render toàn bộ state từ một object CONFIG. Copy ra, sửa CONFIG và style, không viết engine mới.
 
@@ -26,6 +26,7 @@ Mục đích: mọi paywall mới đều ra cùng một bộ state, cùng quy t�
 1. **HTML board trước**: một trang, mỗi state là một phone frame 360 dp, có nhãn tiếng Việt dưới mỗi frame (nhãn chuẩn ở mục 3). Dựng từ `assets/board-template.html`. Chỉ vẽ Figma sau khi designer đã xem board và chốt hướng.
 2. **Figma sau khi "chốt"**: đưa lên file Figma của app, trong section mới, theo đúng bố cục bảng ở mục 6. Không vẽ lên section của người khác.
 3. **Handoff cho dev** nếu được hỏi: chỉ logic, rule, case; không code. Bảng state ở `states.md` là tài liệu handoff.
+4. **Soát trước khi giao**: chạy checklist mục 7. Nếu có skill audit paywall riêng (đối chiếu luật Google Play / App Store, báo cáo P0/P1/P2) thì chạy thêm trước khi bàn giao dev.
 
 ## 2. Input phải có trước khi dựng
 
@@ -53,10 +54,10 @@ Mỗi paywall phải có đủ các frame sau, đặt nhãn đúng như cột "N
 | 4 | Chọn gói lifetime | `Gói lifetime` | Sub-line "One time purchased", CTA "Continue", không trial, không "auto-renew" |
 | 5 | Chưa load được billing | `Chưa load được billing` | Giá và tag thành skeleton, CTA xám + spinner, headline/hero/legal giữ nguyên |
 | 6 | Popup Terms & Privacy | `Bật term & policies` | Bottom sheet 2 tab Terms / Privacy policies, nút X, nội dung chuẩn trong `copy.md` |
-| 7 | Responsive | `Default view màn to`, `Default view màn bé`, `Scroll max view màn to/bé` | 360×800 và 360×640; màn bé phải thấy giá + CTA ở default |
+| 7 | Responsive | `Default view màn to`, `Default view màn bé`, `Scroll max view màn to/bé` | Android: 360×800 và 360×640. iOS: default 402×874 + đủ 9 cỡ iPhone (`references/ios.md`). Màn bé phải thấy giá + CTA ở default |
 | 8 | Localisation | `Demo tiếng Hàn` (hoặc ngôn ngữ thị trường chính) | Cùng layout, chuỗi dịch, giá nội tệ |
 
-Không làm màn `Load billing lỗi` (retry): app dùng timeout cho billing, giữ state loading tới khi timeout. Tuỳ chọn, thêm khi paywall có logic tương ứng: `Đang mở Google Play` (CTA spinner sau khi bấm), `Gói week` (bảng riêng khi test thêm plan). Chi tiết từng phần tử ở `references/states.md`.
+Không làm màn `Load billing lỗi` (retry): app dùng timeout cho billing, giữ state loading tới khi timeout (chốt 13/10/2026). Tuỳ chọn, thêm khi paywall có logic tương ứng: `Đang mở Google Play` (CTA spinner sau khi bấm), `Gói week` (bảng riêng khi test thêm plan). Chi tiết từng phần tử ở `references/states.md`.
 
 ## 4. Thông tin bắt buộc và cơ chế chống lặp (đọc kỹ)
 
@@ -78,13 +79,13 @@ Template có hàm `lint()` đếm tự động và in cảnh báo dưới từng
 
 - Copy in-app chỉ tiếng Anh, từ đơn giản; app tự dịch. Headline có 1 từ nhấn màu.
 - CTA: có trial = **"Try for free"**, mọi gói không trial (kể cả lifetime) = **"Continue"**. Không "Subscribe", "Buy", "Start trial". "Try with $0.00" chỉ khi card đã hiện "$0.00".
-- Không đặt "Restore purchase" ở footer paywall; restore nằm ở Settings.
+- Android: không đặt "Restore purchase" ở footer paywall; restore nằm ở Settings. iOS: Restore là link thứ 3 trong hàng legal `Terms of Service · Privacy Policy · Restore` (chốt 28/10/2026; Apple yêu cầu có cách restore trên màn đăng ký).
 - Tag chỉ dùng từ kho: `3-day free trial`, `Most popular`, `Most value`, `Best value`, `75% OFF`, `NO PAYMENT NOW`. Một card tối đa 1 tag góc + 1 nhãn ngắn.
 - Trust: số thật của app. Không bịa số; chưa có thì hỏi.
 
-## 4b. Terms & Privacy: luôn là bottom sheet
+## 4b. Terms & Privacy: luôn là bottom sheet (Android)
 
-Mọi app dùng chung một kiểu: bấm link ở Legal → bottom sheet 2 tab `Terms` | `Privacy policies.`, nút X, nội dung 5 đoạn chuẩn trong `copy.md`. Thay `{app}` bằng tên hiển thị trong app, `{store}` = Google Play hoặc App Store theo nền tảng. Đoạn văn pháp lý dài (kiểu "Payment will be charged to your Google Play account…") chỉ được nằm trong sheet, không nằm trên paywall.
+iOS khác: không sheet, link mở Safari view (xem `references/ios.md`). Mọi app Android dùng chung một kiểu: bấm link ở Legal → bottom sheet 2 tab `Terms` | `Privacy policies.`, nút X, nội dung 5 đoạn chuẩn trong `copy.md`. Thay `{app}` bằng tên hiển thị trong app, `{store}` = Google Play hoặc App Store theo nền tảng. Đoạn văn pháp lý dài (kiểu "Payment will be charged to your Google Play account…") chỉ được nằm trong sheet, không nằm trên paywall.
 
 ## 4c. Áp vào layout khác
 
@@ -140,3 +141,10 @@ Khi có nhiều paywall trong một mẻ: mỗi paywall một hàng, cột = `De
 - [ ] Dòng pháp lý và popup Terms có mặt ở mọi state kể cả loading.
 - [ ] Giá đúng với Play Console / App Store / RevenueCat của app; không bịa.
 - [ ] Hero là ảnh thật hoặc Lottie, không khung xám.
+- [ ] Bản tiếng Nhật (nếu có) đã soát theo luật ngắt dòng trong `copy.md`.
+
+Bổ sung 09/11/2026 (accessibility). Chỉ thêm, không đổi luật nào ở trên; cỡ chữ, line height, màu vẫn theo luật đã chốt.
+- [ ] Tương phản chữ ≥ 4.5:1 trên nền thật (kể cả legal, charge, giá gạch); chữ ≥ 18 hoặc đậm ≥ 14 thì ≥ 3:1. Không đạt thì báo designer, không tự đổi màu.
+- [ ] Vùng chạm ≥ 48dp (Android) / 44pt (iOS) cho X, thẻ gói, CTA, từng link legal. Hình nhỏ hơn thì ghi chú dev mở rộng vùng chạm (Compose `Modifier.minimumInteractiveComponentSize()`, SwiftUI `.contentShape`), không phóng to hình.
+- [ ] Giá, % giảm, đồng hồ đếm ngược dùng số tabular (CSS `font-variant-numeric: tabular-nums`; Compose `fontFeatureSettings = "tnum"`; SwiftUI `.monospacedDigit()`) để chữ không nhảy khi đổi gói.
+- [ ] Ghi chú dev có accessibility: nhãn cho nút chỉ có icon (X, back), thứ tự TalkBack/VoiceOver khớp thứ tự nhìn, phóng chữ hệ thống lớn nhất không vỡ layout giá + CTA.

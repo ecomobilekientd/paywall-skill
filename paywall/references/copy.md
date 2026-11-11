@@ -133,3 +133,15 @@ Template có sẵn một bộ KR trong `CONFIG.locale`. Mẫu thêm:
 | Legal | `계속하면 이용 약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다.` | `続行すると、利用規約とプライバシーポリシーに同意したことになります。` |
 
 Luôn test DE/PT (chuỗi dài) và KR/JA (CJK) trước khi chốt layout.
+
+## Ngắt dòng tiếng Nhật (JA) — chốt 04/11/2026
+
+Tiếng Nhật không có dấu cách nên trình duyệt và app được phép ngắt giữa bất kỳ hai ký tự nào. Ngắt sai chỗ làm câu đọc sai nghĩa hoặc trông lỗi (ví dụ `無制` / `限`, `¥2,4` / `00/月`). Luật:
+
+1. **Chỉ ngắt giữa các cụm (文節).** Mỗi dòng phải đọc được thành một cụm trọn nghĩa. Trợ từ đi liền với từ đứng trước: `メモを` / `無制限に`, không bao giờ để `を`, `に`, `で`, `は`, `が`, `の`, `も`, `と`, `へ` đứng đầu dòng.
+2. **Không cắt các khối sau:** số + đơn vị (`3日間`, `¥2,400/月`), từ katakana (`トライアル`, `チェックリスト`), từ ghép kanji (`無制限`, `自動更新`, `広告なし`), tên app và tên gói (`{app} Pro`, `年間プラン`).
+3. **Kinsoku:** không dòng nào bắt đầu bằng `、。」』）ー` hay kana nhỏ (`ゃゅょっァィ`), không dòng nào kết thúc bằng `「『（`.
+4. **Headline ngắt tay bằng `\n`, ngay sau `。` hoặc `、`**, mỗi dòng một ý. Mẫu tốt: `頭の外へ。\nそして完了。`. Headline tiếng Nhật tối đa 2 dòng ở 360px; dài hơn thì rút copy, không giảm cỡ chữ.
+5. **Không để mồ côi:** dòng cuối không được chỉ còn 1–2 ký tự (`。`, `す。`). Nếu bị thì chuyển điểm ngắt hoặc rút câu.
+6. **Câu dài (subtitle, deal line, legal) để tự ngắt** nhưng board phải bật ngắt theo cụm: `.pw` có `lang="ja"` (đặt `CONFIG.locale.lang = 'ja'`), template đã có CSS `word-break: auto-phrase; line-break: strict`. Khối nào vẫn bị cắt thì bọc `<span class="nb">…</span>` (nowrap) quanh khối đó, hoặc thêm `<wbr>` ở điểm được phép ngắt.
+7. **Soát trước khi giao:** xem frame JA ở 360px và ở state small, đọc từng dòng theo luật 1–5. Bản dịch chưa có người Nhật duyệt thì ghi rõ "chưa native review" trên board.
